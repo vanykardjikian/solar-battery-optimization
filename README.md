@@ -1,101 +1,100 @@
-# Microgrid Optimization Using Linear Programming   
+# Microgrid Optimization
 
-This repository contains an implementation of a **microgrid energy scheduling optimization model** using **Mixed Integer Linear Programming (MILP)** with **Python + PuLP + CBC solver**.  
-The goal is to minimize the operational cost of a grid-connected building with:
-- photovoltaic solar generation  
-- a battery storage system  
-- the ability to buy energy from the grid and sell excess electricity  
-
----
-
-## **Problem Description**
-
-We consider a 24-hour operation of a building equipped with:
-- Solar PV generation
-- Battery storage (charging/discharging efficiency included)
-- Grid connection (buy & sell)
-- Hourly demand profile
-
-The objective is to **minimize the electricity cost**, or equivalently **maximize the profit**, while obeying:
-- power balance
-- storage capacity
-- charge/discharge limits
-- binary charging vs discharging decisions
-- binary buying vs selling decisions
-- grid buy/sell constraints
+This project simulates a 24‑hour operation of a grid-connected prosumer that has
+solar PV, battery storage, and the ability to buy from or sell to the grid. It
+bundles both a **Mixed Integer Linear Program (MILP)** implemented in PuLP and a
+**Mixed Integer Non-Linear Program (MILP)** formulation built with GEKKO so you can compare dispatch
+strategies and economics.
 
 ---
 
-## **Model Summary**
+## Highlights
 
-## What the model does
-- Mixed-Integer Linear Program (MILP) solved with PuLP + CBC
-- Two scenarios:
-
-| Scenario                      | Export price |
-|-------------------------------|--------------|
-| 1 - Current tarrif | 22 AMD/kWh   |
-| 2 - Hypothetical   | 48 AMD/kWh   |
-
-- Charts for visualization
-
-
-### **Decision Variables**
-- `xtbuy[t]` – grid energy purchased  
-- `xtsell[t]` – energy sold to grid  
-- `xtcharge[t]` – battery charging energy  
-- `xtdischarge[t]` – battery discharging energy  
-- `st[t]` – battery state of charge  
-
-Binary variables:
-- `ytcharge[t]`, `ytdischarge[t]` – avoid charging & discharging at hour
-- `ytbuy[t]`, `ytsell[t]` – avoid buy & sell same hour  
+- Centralized system parameters in `constants.py`
+- Reusable tariff builders in `profiles.py` (e.g., 7h off-peak + 16h peak)
+- Linear MILP (`linear.py`) solved with PuLP + CBC
+- Non-linear MINLP (`non_linear.py`) solved with GEKKO
+- Automated scenario runner in `main.py`:
+  - Scenario 1: flat export price of 22 AMD/kWh
+  - Scenario 2: off-peak 35 AMD/kWh, peak 48 AMD/kWh
+- Sensitivity analysis that explores sell prices and plots exports vs. cost
+- Rich Matplotlib charts saved under `results/linear/` and `results/non_linear/`
 
 ---
 
-## **Technology Stack**
-- Python 3
-- PuLP (MILP modelling)
-- Pandas
-- Matplotlib (via charts.py)
+## Model Summary
+
+Both solvers enforce the same physics and constraints over 24 hourly periods:
+
+- Power balance each hour: solar + grid buy + discharge = demand + charge + export
+- Battery state-of-charge recursion with charge/discharge efficiencies
+- Bounds on grid transactions and battery power
+- Binary charge/discharge indicators to prevent simultaneous actions
+- Grid buy/sell exclusivity (handled via bounds or binaries per solver)
+
+### Decision Variables (linear model notation)
+
+| Variable | Description |
+|----------|-------------|
+| `xtbuy[t]` | Energy purchased from the grid |
+| `xtsell[t]` | Energy exported to the grid |
+| `xtcharge[t]` | Battery charging power |
+| `xtdischarge[t]` | Battery discharging power |
+| `st[t]` | Battery state of charge |
+| `ytcharge[t]`, `ytdischarge[t]` | Binary charge/discharge toggles |
+
+The GEKKO model mirrors these variables and binaries to keep results comparable.
 
 ---
 
-**Repository Structure**
+## Repository Layout
 
-- charts.py (All visualization utilities)
-
-- main.py  (Main optimization code)
-
-- results/ (Generated plots and tables)
-
-- README.md (Documentation)
+| Path | Purpose |
+|------|---------|
+| `main.py` | Runs both solvers, comparison plot, and sensitivity charts |
+| `constants.py` | Battery, solar, demand, and grid price parameters |
+| `profiles.py` | Helpers for building hourly sell-price profiles |
+| `linear.py` | PuLP/CBC MILP implementation |
+| `non_linear.py` | GEKKO implementation |
+| `charts.py` | All Matplotlib plotting helpers |
+| `results/` | Auto-generated CSV tables and PNG figures |
 
 ---
 
-## **How to Run**
+## Getting Started
 
-### Install dependencies
+### 1. Install dependencies
+
 ```bash
-pip install pulp pandas matplotlib
+pip install pulp pandas matplotlib gekko
 ```
 
-### Run the optimization script
-```bash 
+### 2. Run the simulations
+
+```bash
 python main.py
 ```
 
-### View results
+The script creates `results/linear/` and `results/non_linear/` if they do not
+exist, runs both scenarios for each solver, generates comparison plots, and
+executes a sensitivity sweep.
 
-All output tables & charts will appear in:
+### 3. Inspect outputs
 
-```bash 
-/results
-```
+- Scenario CSV tables and figures: `results/<solver>/<scenario>_*.{csv,png}`
+- Combined comparison chart: `results/comparison.png`
+- Solar vs demand overview: `results/solar_vs_demand.png`
+- Sensitivity charts: `results/<solver>/<solver>_sensitivity_analysis.png`
+
+---
+
+## Extending the Project
+
+- Modify `constants.py` to change the physical system or costs.
+- Build new tariff shapes via `profiles.variable_tariff_profile`.
+
+---
 
 ## License
 
 MIT License.
-
-
-

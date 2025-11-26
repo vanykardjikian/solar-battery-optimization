@@ -93,7 +93,7 @@ def decision_variables(df, scenario_name, results_folder):
     ax[1].set_yticks([0,1])
     ax[1].set_ylabel("Discharge")
     ax[1].set_xlabel("Hour")
-    plt.suptitle(f"{scenario_name} - Binary Decision Variables (MILP Control Signals)")
+    plt.suptitle(f"{scenario_name} - Binary Decision Variables")
     plt.tight_layout()
     plt.savefig(f"{results_folder}/{scenario_name.replace(' ', '_')}_binary_decisions.png", dpi=300)
 

@@ -10,11 +10,11 @@ strategies and economics.
 
 ## Highlights
 
-- Centralized system parameters in `constants.py`
-- Reusable tariff builders in `profiles.py`
-- Linear MILP (`linear.py`) solved with PuLP + CBC
-- Non-linear MINLP (`non_linear.py`) solved with GEKKO
-- Automated scenario runner in `main.py`:
+- Centralized system parameters in `src/constants.py`
+- Reusable tariff builders in `src/profiles.py`
+- Linear MILP (`src/linear.py`) solved with PuLP + CBC
+- Non-linear MINLP (`src/non_linear.py`) solved with GEKKO
+- Automated scenario runner in `src/main.py`:
   - Scenario 1: flat export price of 22 AMD/kWh
   - Scenario 2: off-peak 35 AMD/kWh, peak 48 AMD/kWh
 - Sensitivity analysis that explores sell prices and plots exports vs. cost
@@ -51,12 +51,12 @@ The GEKKO model mirrors these variables and binaries to keep results comparable.
 
 | Path | Purpose |
 |------|---------|
-| `main.py` | Runs both solvers, comparison plot, and sensitivity charts |
-| `constants.py` | Battery, solar, demand, and grid price parameters |
-| `profiles.py` | Helpers for building hourly sell-price profiles |
-| `linear.py` | PuLP/CBC MILP implementation |
-| `non_linear.py` | GEKKO implementation |
-| `charts.py` | All Matplotlib plotting helpers |
+| `src/main.py` | Runs both solvers, comparison plot, and sensitivity charts |
+| `src/constants.py` | Battery, solar, demand, and grid price parameters |
+| `src/profiles.py` | Helpers for building hourly sell-price profiles |
+| `src/linear.py` | PuLP/CBC MILP implementation |
+| `src/non_linear.py` | GEKKO implementation |
+| `src/charts.py` | All Matplotlib plotting helpers |
 | `results/` | Auto-generated CSV tables and PNG figures |
 
 ---
@@ -72,7 +72,7 @@ pip install pulp pandas matplotlib gekko
 ### 2. Run the simulations
 
 ```bash
-python main.py
+python -m src.main
 ```
 
 The script creates `results/linear/` and `results/non_linear/` if they do not

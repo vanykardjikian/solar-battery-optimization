@@ -11,7 +11,7 @@ strategies and economics.
 ## Highlights
 
 - Centralized system parameters in `constants.py`
-- Reusable tariff builders in `profiles.py` (e.g., 7h off-peak + 16h peak)
+- Reusable tariff builders in `profiles.py`
 - Linear MILP (`linear.py`) solved with PuLP + CBC
 - Non-linear MINLP (`non_linear.py`) solved with GEKKO
 - Automated scenario runner in `main.py`:

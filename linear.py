@@ -24,7 +24,6 @@ os.makedirs("results", exist_ok=True)
 charts.solar_vs_demand(T, Esolar, Edemand)
 
 def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
-    #C_sell = [export_price] * 24
     baseline_cost = sum(C_buy[t] * Edemand[t] for t in T)
 
     model = LpProblem(f"Microgrid_{scenario_name}", LpMaximize)

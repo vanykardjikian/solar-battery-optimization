@@ -1,4 +1,4 @@
-# Microgrid Optimization
+# Optimal Allocation of Energy Resources of a Grid Connected Microsystem: Non-Linear Case
 
 This project simulates a 24‑hour operation of a grid-connected prosumer that has
 solar PV, battery storage, and the ability to buy from or sell to the grid. It

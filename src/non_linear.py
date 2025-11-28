@@ -53,7 +53,6 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
 
     for t in range(nt):
         m.Equation(yc[t] + yd[t] <= 1)
-        m.Equation(yc[t] + yd[t] <= 1)
 
     m.options.SOLVER = 1
     m.solve(disp=False)

@@ -1,47 +1,36 @@
 from pulp import LpProblem, LpVariable, LpMaximize, LpBinary, value, PULP_CBC_CMD
-import pandas as pd
 import os
+import pandas as pd
 
 import charts
 from constants import (
-    T,
-    C_buy,
-    Esolar,
-    Edemand,
-    Ecap,
-    Pcharge_max,
-    Pdischarge_max,
-    charge_eff,
-    discharge_eff,
-    s0,
-    Pbuy_max,
-    Psell_max,
+    T, C_buy, Esolar, Edemand, Ecap,
+    Pcharge_max, Pdischarge_max, charge_eff, discharge_eff, s0,
+    Pbuy_max, Psell_max,
 )
 
-# Create results folder
 os.makedirs("results", exist_ok=True)
-
 charts.solar_vs_demand(T, Esolar, Edemand)
 
-def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
+
+def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     baseline_cost = sum(C_buy[t] * Edemand[t] for t in T)
 
     model = LpProblem(f"Microgrid_{scenario_name}", LpMaximize)
 
-    # Variables
-    xbuy       = LpVariable.dicts("xtbuy",       T, 0, Pbuy_max)
-    xsell      = LpVariable.dicts("xtsell",      T, 0, Psell_max)
-    xcharge    = LpVariable.dicts("xtcharge",    T, 0, Pcharge_max)
+    # --- Decision variables ---
+    xbuy = LpVariable.dicts("xtbuy", T, 0, Pbuy_max)
+    xsell = LpVariable.dicts("xtsell", T, 0, Psell_max)
+    xcharge = LpVariable.dicts("xtcharge", T, 0, Pcharge_max)
     xdischarge = LpVariable.dicts("xtdischarge", T, 0, Pdischarge_max)
-    s          = LpVariable.dicts("st",          T, 0, Ecap)
-    ycharge    = LpVariable.dicts("ytcharge",    T, cat=LpBinary)
+    s = LpVariable.dicts("st", T, 0, Ecap)
+    ycharge = LpVariable.dicts("ytcharge", T, cat=LpBinary)
     ydischarge = LpVariable.dicts("ytdischarge", T, cat=LpBinary)
 
+    # --- Objective: maximize revenue from export minus grid purchase cost ---
+    model += sum(C_sell[t] * xsell[t] - C_buy[t] * xbuy[t] for t in T)
 
-    # Objective
-    model += sum(C_sell[t]*xsell[t] - C_buy[t]*xbuy[t] for t in T)
-
-    # Constraints
+    # --- Constraints ---
     for t in T:
         model += Esolar[t] + xbuy[t] + xdischarge[t] == Edemand[t] + xcharge[t] + xsell[t]
 
@@ -50,17 +39,17 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
         else:
             model += s[t] == s[t-1] + charge_eff * xcharge[t] - xdischarge[t] / discharge_eff
 
-        model += xcharge[t]    <= Pcharge_max    * ycharge[t]
+        model += xcharge[t] <= Pcharge_max * ycharge[t]
         model += xdischarge[t] <= Pdischarge_max * ydischarge[t]
         model += ycharge[t] + ydischarge[t] <= 1
 
-        model += xbuy[t]    <= Pbuy_max
+        model += xbuy[t] <= Pbuy_max
         model += xsell[t] <= Psell_max
 
 
     model.solve(PULP_CBC_CMD(msg=False))
 
-    # === Extract results ===
+    # --- Extract results ---
     data = []
     for t in T:
         data.append({
@@ -90,13 +79,13 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
 
     df.to_csv(f"{results_folder}/{scenario_name.replace(' ', '_')}_table.csv", index=False)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(scenario_name)
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(df.round(2).to_string(index=False))
-    print(f"→ Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh")
+    print(f"-> Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh")
 
-    # === Plots ===
+    # --- Plots ---
     charts.scenario_chart(df, actual_cost, exported, scenario_name, results_folder)
     charts.costs_chart(df, C_buy, C_sell, actual_cost, T, scenario_name, results_folder)
     charts.sources_chart(df, scenario_name, results_folder)

@@ -3,7 +3,7 @@
 This project simulates a 24‑hour operation of a grid-connected prosumer that has
 solar PV, battery storage, and the ability to buy from or sell to the grid. It
 bundles both a **Mixed Integer Linear Program (MILP)** implemented in PuLP and a
-**Mixed Integer Non-Linear Program (MILP)** formulation built with GEKKO so you can compare dispatch
+**Mixed Integer Non-Linear Program (MINLP)** formulation built with GEKKO so you can compare dispatch
 strategies and economics.
 
 ---
@@ -66,7 +66,7 @@ The GEKKO model mirrors these variables and binaries to keep results comparable.
 ### 1. Install dependencies
 
 ```bash
-pip install pulp pandas matplotlib gekko
+pip install -r requirements.txt
 ```
 
 ### 2. Run the simulations

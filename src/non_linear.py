@@ -1,31 +1,26 @@
+"""GEKKO MINLP solver with quadratic battery loss term for microgrid dispatch."""
 from gekko import GEKKO
 import pandas as pd
+
 import charts
 from constants import (
-    T,
-    C_buy,
-    Esolar,
-    Edemand,
-    Ecap,
-    Pcharge_max,
-    Pdischarge_max,
-    charge_eff,
-    discharge_eff,
-    s0,
-    Pbuy_max,
-    Psell_max,
+    T, C_buy, Esolar, Edemand, Ecap,
+    Pcharge_max, Pdischarge_max, charge_eff, discharge_eff, s0,
+    Pbuy_max, Psell_max,
 )
 
-def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
+
+def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
+    """Solve MINLP for one tariff scenario; returns DataFrame or dict if save_results=False."""
     baseline_cost = sum(C_buy[t] * Edemand[t] for t in T)
     m = GEKKO(remote=False)
     nt = 24
 
-    buy  = [m.Var(lb=0, ub=Pbuy_max) for _ in range(nt)]
+    buy = [m.Var(lb=0, ub=Pbuy_max) for _ in range(nt)]
     sell = [m.Var(lb=0, ub=Psell_max) for _ in range(nt)]
-    ch   = [m.Var(lb=0, ub=Pcharge_max) for _ in range(nt)]
-    dis  = [m.Var(lb=0, ub=Pdischarge_max) for _ in range(nt)]
-    soc  = [m.Var(lb=0, ub=Ecap) for _ in range(nt)]
+    ch = [m.Var(lb=0, ub=Pcharge_max) for _ in range(nt)]
+    dis = [m.Var(lb=0, ub=Pdischarge_max) for _ in range(nt)]
+    soc = [m.Var(lb=0, ub=Ecap) for _ in range(nt)]
 
     yc = [m.Var(lb=0, ub=1, integer=True) for _ in range(nt)]
     yd = [m.Var(lb=0, ub=1, integer=True) for _ in range(nt)]
@@ -37,6 +32,7 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
     for t in range(nt):
         m.Equation(Esolar[t] + buy[t] + dis[t] == Edemand[t] + ch[t] + sell[t])
 
+    # Quadratic loss coefficient (k) models resistive losses during charge/discharge
     k = 0.012
     for t in range(nt):
         loss = k * (ch[t]**2 / Pcharge_max + dis[t]**2 / Pdischarge_max)
@@ -46,10 +42,10 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
             m.Equation(soc[t] == soc[t-1] + charge_eff*ch[t] - dis[t]/discharge_eff - loss)
 
     for t in range(nt):
-        m.Equation(ch[t]  <= Pcharge_max    * yc[t])
+        m.Equation(ch[t] <= Pcharge_max * yc[t])
         m.Equation(dis[t] <= Pdischarge_max * yd[t])
         m.Equation(buy[t] <= Pbuy_max)
-        m.Equation(sell[t]<= Psell_max)
+        m.Equation(sell[t] <= Psell_max)
 
     for t in range(nt):
         m.Equation(yc[t] + yd[t] <= 1)
@@ -84,13 +80,13 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results = True):
     
     print(f"\n{'='*60}")
     print(scenario_name)
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(df.round(2).to_string(index=False))
-    print(f"→ Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh")
+    print(f"-> Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh")
 
-    # === Plots ===
-    charts.scenario_chart(df, m.options.objfcnval, 55, scenario_name, results_folder)
-    charts.costs_chart(df, C_buy, C_sell, m.options.objfcnval, T, scenario_name, results_folder)
+    # --- Plots ---
+    charts.scenario_chart(df, actual_cost, exported, scenario_name, results_folder)
+    charts.costs_chart(df, C_buy, C_sell, actual_cost, T, scenario_name, results_folder)
     charts.sources_chart(df, scenario_name, results_folder)
     charts.decision_variables(df, scenario_name, results_folder)
     charts.battery_charging(df, scenario_name, results_folder)

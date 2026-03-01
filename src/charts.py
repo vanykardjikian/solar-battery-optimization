@@ -1,11 +1,9 @@
-
-
 from matplotlib import pyplot as plt
 import numpy as np
 from profiles import variable_tariff_profile
 
 
-def solar_vs_demand(hour, solar, demand):
+def solar_vs_demand_chart(hour, solar, demand):
     """Plot 24h solar generation (bars) vs load demand (line)."""
     _, ax = plt.subplots(figsize=(11, 5))
 
@@ -88,7 +86,7 @@ def sources_chart(df, scenario_name, results_folder):
     plt.savefig(f"{results_folder}/{scenario_name.replace(' ', '_')}_sources.png", dpi=300)
     plt.close()
 
-def decision_variables(df, scenario_name, results_folder):
+def decision_variables_chart(df, scenario_name, results_folder):
     """Plot binary charge/discharge indicators."""
     _, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
     ax[0].step(df["Hour"], df["y_c"], where='post', color='purple', linewidth=2)
@@ -122,7 +120,7 @@ def battery_charging(df, scenario_name, results_folder):
     plt.close()
 
 
-def plot_comparison(df_lin_A, df_lin_B, df_nonlin_A, df_nonlin_B):
+def comparison_chart(df_lin_A, df_lin_B, df_nonlin_A, df_nonlin_B):
     labels = [
         "Solar Generated",
         "Grid Import (Buy)",

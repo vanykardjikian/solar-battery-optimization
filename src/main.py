@@ -23,7 +23,7 @@ df2l = linear.solve_scenario(scenario2_prices, "(Linear) Scenario 2 - 35 or 48 A
 print("Running non-linear scenarios...")
 df1nl = non_linear.solve_scenario(scenario1_prices, "(Non-linear) Scenario 1 - 22 AMD", "results/non_linear")
 df2nl = non_linear.solve_scenario(scenario2_prices, "(Non-linear) Scenario 2 - 35 or 48 AMD", "results/non_linear")
-charts.plot_comparison(df1l, df2l, df1nl, df2nl)
+charts.comparison_chart(df1l, df2l, df1nl, df2nl)
 
 # --- Sensitivity plot ---
 print("\nRunning sensitivity analysis...")

@@ -1,4 +1,3 @@
-"""GEKKO MINLP solver with quadratic battery loss term for microgrid dispatch."""
 from gekko import GEKKO
 import pandas as pd
 
@@ -88,7 +87,7 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     charts.scenario_chart(df, actual_cost, exported, scenario_name, results_folder)
     charts.costs_chart(df, C_buy, C_sell, actual_cost, T, scenario_name, results_folder)
     charts.sources_chart(df, scenario_name, results_folder)
-    charts.decision_variables(df, scenario_name, results_folder)
-    charts.battery_charging(df, scenario_name, results_folder)
+    charts.decision_variables_chart(df, scenario_name, results_folder)
+    charts.battery_charging_chart(df, scenario_name, results_folder)
 
     return df

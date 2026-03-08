@@ -9,11 +9,8 @@ from constants import (
     Pbuy_max, Psell_max,
 )
 
-os.makedirs("results", exist_ok=True)
-charts.solar_vs_demand_chart(T, Esolar, Edemand)
-
-
 def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
+    """Solve MILP for one tariff scenario; returns DataFrame or dict if save_results=False."""
     baseline_cost = sum(C_buy[t] * Edemand[t] for t in T)
 
     model = LpProblem(f"Microgrid_{scenario_name}", LpMaximize)

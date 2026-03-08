@@ -3,7 +3,7 @@ import numpy as np
 from profiles import variable_tariff_profile
 
 
-def solar_vs_demand_chart(hour, solar, demand):
+def solar_vs_demand_chart(hour, solar, demand, results_folder):
     """Plot 24h solar generation (bars) vs load demand (line)."""
     _, ax = plt.subplots(figsize=(11, 5))
 
@@ -19,7 +19,7 @@ def solar_vs_demand_chart(hour, solar, demand):
     ax.legend(lines, labels, loc="upper left")
     plt.grid(alpha=0.3)
     plt.tight_layout()
-    plt.savefig("results/solar_vs_demand.png", dpi=300)
+    plt.savefig(f"{results_folder}/solar_vs_demand.png", dpi=300)
     plt.close()
 
 def scenario_chart(df, actual_cost, exported, scenario_name, results_folder):
@@ -120,7 +120,7 @@ def battery_charging_chart(df, scenario_name, results_folder):
     plt.close()
 
 
-def comparison_chart(df_lin_A, df_lin_B, df_nonlin_A, df_nonlin_B):
+def comparison_chart(df_lin_A, df_lin_B, df_nonlin_A, df_nonlin_B, results_folder):
     labels = [
         "Solar Generated",
         "Grid Import (Buy)",
@@ -151,7 +151,7 @@ def comparison_chart(df_lin_A, df_lin_B, df_nonlin_A, df_nonlin_B):
     ax.axhline(0, color='black', linewidth=0.8)
 
     plt.tight_layout()
-    plt.savefig("results/comparison.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{results_folder}/comparison.png", dpi=300, bbox_inches='tight')
     plt.close()
 
 

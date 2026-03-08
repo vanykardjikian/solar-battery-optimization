@@ -52,6 +52,7 @@ The GEKKO model mirrors these variables and binaries to keep results comparable.
 | Path | Purpose |
 |------|---------|
 | `src/main.py` | Runs both solvers, comparison plot, and sensitivity charts |
+| `src/time_analysis.py` | Solver timing benchmarks |
 | `src/constants.py` | Battery, solar, demand, and grid price parameters |
 | `src/profiles.py` | Helpers for building hourly sell-price profiles |
 | `src/linear.py` | PuLP/CBC MILP implementation |
@@ -85,6 +86,17 @@ executes a sensitivity sweep.
 - Combined comparison chart: `results/comparison.png`
 - Solar vs demand overview: `results/solar_vs_demand.png`
 - Sensitivity charts: `results/<solver>/<solver>_sensitivity_analysis.png`
+
+### 4. Comparing solver times
+
+To benchmark the linear (PuLP/CBC) and non-linear (GEKKO) solvers without generating any outputs.
+
+```bash
+cd src
+python time_analysis.py
+```
+
+The script runs the same 24-hour scenario 10 times per solver (solver-only, no CSV or charts), then prints the average solve time and the ratio. Use these numbers to compare computational performance.
 
 ---
 

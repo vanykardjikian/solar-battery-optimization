@@ -102,7 +102,7 @@ def decision_variables_chart(df, scenario_name, results_folder):
     plt.savefig(f"{results_folder}/{scenario_name.replace(' ', '_')}_binary_decisions.png", dpi=300)
 
 
-def battery_charging(df, scenario_name, results_folder):
+def battery_charging_chart(df, scenario_name, results_folder):
     """Plot charge/discharge bars and SOC over time."""
     plt.figure(figsize=(11, 5))
     plt.bar(df["Hour"], df["Charge"], color='#27ae60', alpha=0.8, label="Charging (+)", width=0.8)

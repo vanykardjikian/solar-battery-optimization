@@ -1,9 +1,16 @@
+"""
+Measures the average solve time of the linear and nonlinear optimization models.
+
+"""
+
 import time
+
 import linear
 import non_linear
 from profiles import variable_tariff_profile
 
 N_RUNS = 10
+
 
 def main():
     prices = variable_tariff_profile(22, 22)

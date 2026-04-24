@@ -1,12 +1,12 @@
-from pulp import LpProblem, LpVariable, LpMaximize, LpBinary, value, PULP_CBC_CMD
 import pandas as pd
+from pulp import (PULP_CBC_CMD, LpBinary, LpMaximize, LpProblem, LpVariable,
+                  value)
 
 import charts
-from constants import (
-    T, C_buy, E_solar, E_demand, E_cap,
-    P_charge_max, P_discharge_max, charge_eff, discharge_eff, s0,
-    P_buy_max, P_sell_max,
-)
+from constants import (C_buy, E_cap, E_demand, E_solar, P_buy_max,
+                       P_charge_max, P_discharge_max, P_sell_max, T,
+                       charge_eff, discharge_eff, s0)
+
 
 def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     """Solve MILP for one tariff scenario; returns DataFrame or dict if save_results=False."""
@@ -28,12 +28,20 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
 
     # --- Constraints ---
     for t in T:
-        model += E_solar[t] + x_buy[t] + x_discharge[t] == E_demand[t] + x_charge[t] + x_sell[t]
+        model += (
+            E_solar[t] + x_buy[t] + x_discharge[t]
+            == E_demand[t] + x_charge[t] + x_sell[t]
+        )
 
         if t == 0:
-            model += s[t] == s0 + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
+            model += (
+                s[t] == s0 + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
+            )
         else:
-            model += s[t] == s[t-1] + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
+            model += (
+                s[t]
+                == s[t - 1] + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
+            )
 
         model += x_charge[t] <= P_charge_max * y_charge[t]
         model += x_discharge[t] <= P_discharge_max * y_discharge[t]
@@ -42,44 +50,48 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
         model += x_buy[t] <= P_buy_max
         model += x_sell[t] <= P_sell_max
 
-
     model.solve(PULP_CBC_CMD(msg=False))
 
     # --- Extract results ---
     data = []
     for t in T:
-        data.append({
-            "Hour": t,
-            "Solar": E_solar[t],
-            "Demand": E_demand[t],
-            "Buy": value(x_buy[t]),
-            "Sell": value(x_sell[t]),
-            "Charge": value(x_charge[t]),
-            "Discharge": value(x_discharge[t]),
-            "SOC": value(s[t]),
-            "y_c": int(value(y_charge[t])),
-            "y_d": int(value(y_discharge[t])),
-        })
+        data.append(
+            {
+                "Hour": t,
+                "Solar": E_solar[t],
+                "Demand": E_demand[t],
+                "Buy": value(x_buy[t]),
+                "Sell": value(x_sell[t]),
+                "Charge": value(x_charge[t]),
+                "Discharge": value(x_discharge[t]),
+                "SOC": value(s[t]),
+                "y_c": int(value(y_charge[t])),
+                "y_d": int(value(y_discharge[t])),
+            }
+        )
     df = pd.DataFrame(data)
 
     actual_cost = value(model.objective)
     exported = df["Sell"].sum()
 
-
     if not save_results:
         return {
-            'exported': exported,
-            'actual_cost': -actual_cost,
-            'baseline_cost': baseline_cost
+            "exported": exported,
+            "actual_cost": -actual_cost,
+            "baseline_cost": baseline_cost,
         }
 
-    df.to_csv(f"{results_folder}/{scenario_name.replace(' ', '_')}_table.csv", index=False)
+    df.to_csv(
+        f"{results_folder}/{scenario_name.replace(' ', '_')}_table.csv", index=False
+    )
 
     print(f"\n{'=' * 60}")
     print(scenario_name)
     print(f"{'=' * 60}")
     print(df.round(2).to_string(index=False))
-    print(f"-> Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh")
+    print(
+        f"-> Baseline Cost: {baseline_cost:.2f} AMD | Actual Cost: {actual_cost:.2f} AMD | Exported: {exported:.1f} kWh"
+    )
 
     # --- Plots ---
     charts.scenario_chart(df, actual_cost, exported, scenario_name, results_folder)

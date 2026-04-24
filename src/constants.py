@@ -19,3 +19,6 @@ s0 = 15
 Pbuy_max = 60
 Psell_max = 30
 
+# Loss coefficient
+k = 0.012
+

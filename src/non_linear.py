@@ -6,6 +6,7 @@ from constants import (
     T, C_buy, Esolar, Edemand, Ecap,
     Pcharge_max, Pdischarge_max, charge_eff, discharge_eff, s0,
     Pbuy_max, Psell_max,
+    k,
 )
 
 
@@ -31,8 +32,6 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     for t in range(nt):
         m.Equation(Esolar[t] + buy[t] + dis[t] == Edemand[t] + ch[t] + sell[t])
 
-    # Quadratic loss coefficient (k) models resistive losses during charge/discharge
-    k = 0.012
     for t in range(nt):
         loss = k * (ch[t]**2 / Pcharge_max + dis[t]**2 / Pdischarge_max)
         if t == 0:

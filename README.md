@@ -1,49 +1,9 @@
-# Optimal Allocation of Energy Resources of a Grid Connected Microsystem: Non-Linear Case
+# Optimal Allocation of Energy Resources of a Grid Connected Microsystem: Nonlinear Case
 
-This project simulates a 24‑hour operation of a grid-connected prosumer that has
+This project simulates a 24‑hour operation of a grid-connected microsystem that has
 solar PV, battery storage, and the ability to buy from or sell to the grid. It
 bundles both a **Mixed Integer Linear Program (MILP)** implemented in PuLP and a
-**Mixed Integer Non-Linear Program (MINLP)** formulation built with GEKKO so you can compare dispatch
-strategies and economics.
-
----
-
-## Highlights
-
-- Centralized system parameters in `src/constants.py`
-- Reusable tariff builders in `src/profiles.py`
-- Linear MILP (`src/linear.py`) solved with PuLP + CBC
-- Non-linear MINLP (`src/non_linear.py`) solved with GEKKO
-- Automated scenario runner in `src/main.py`:
-  - Scenario 1: flat export price of 22 AMD/kWh
-  - Scenario 2: off-peak 35 AMD/kWh, peak 48 AMD/kWh
-- Sensitivity analysis that explores sell prices and plots exports vs. cost
-- Rich Matplotlib charts saved under `results/linear/` and `results/non_linear/`
-
----
-
-## Model Summary
-
-Both solvers enforce the same physics and constraints over 24 hourly periods:
-
-- Power balance each hour: solar + grid buy + discharge = demand + charge + export
-- Battery state-of-charge recursion with charge/discharge efficiencies
-- Bounds on grid transactions and battery power
-- Binary charge/discharge indicators to prevent simultaneous actions
-- Grid buy/sell exclusivity (handled via bounds or binaries per solver)
-
-### Decision Variables (linear model notation)
-
-| Variable | Description |
-|----------|-------------|
-| `xtbuy[t]` | Energy purchased from the grid |
-| `xtsell[t]` | Energy exported to the grid |
-| `xtcharge[t]` | Battery charging power |
-| `xtdischarge[t]` | Battery discharging power |
-| `st[t]` | Battery state of charge |
-| `ytcharge[t]`, `ytdischarge[t]` | Binary charge/discharge toggles |
-
-The GEKKO model mirrors these variables and binaries to keep results comparable.
+**Mixed Integer Non-Linear Program (MINLP)** formulation built with GEKKO for comparison.
 
 ---
 
@@ -53,10 +13,10 @@ The GEKKO model mirrors these variables and binaries to keep results comparable.
 |------|---------|
 | `src/main.py` | Runs both solvers, comparison plot, and sensitivity charts |
 | `src/time_analysis.py` | Solver timing benchmarks |
-| `src/constants.py` | Battery, solar, demand, and grid price parameters |
-| `src/profiles.py` | Helpers for building hourly sell-price profiles |
-| `src/linear.py` | PuLP/CBC MILP implementation |
-| `src/non_linear.py` | GEKKO implementation |
+| `src/constants.py` | System parameters |
+| `src/profiles.py` | Helper for building hourly sell-price profiles |
+| `src/linear.py` | Linear PuLP/CBC MILP implementation |
+| `src/non_linear.py` | Nonlinear GEKKO implementation |
 | `src/charts.py` | All Matplotlib plotting helpers |
 | `results/` | Auto-generated CSV tables and PNG figures |
 

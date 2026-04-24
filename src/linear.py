@@ -1,47 +1,46 @@
 from pulp import LpProblem, LpVariable, LpMaximize, LpBinary, value, PULP_CBC_CMD
-import os
 import pandas as pd
 
 import charts
 from constants import (
-    T, C_buy, Esolar, Edemand, Ecap,
-    Pcharge_max, Pdischarge_max, charge_eff, discharge_eff, s0,
-    Pbuy_max, Psell_max,
+    T, C_buy, E_solar, E_demand, E_cap,
+    P_charge_max, P_discharge_max, charge_eff, discharge_eff, s0,
+    P_buy_max, P_sell_max,
 )
 
 def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     """Solve MILP for one tariff scenario; returns DataFrame or dict if save_results=False."""
-    baseline_cost = sum(C_buy[t] * Edemand[t] for t in T)
+    baseline_cost = sum(C_buy[t] * E_demand[t] for t in T)
 
     model = LpProblem(f"Microgrid_{scenario_name}", LpMaximize)
 
     # --- Decision variables ---
-    xbuy = LpVariable.dicts("xtbuy", T, 0, Pbuy_max)
-    xsell = LpVariable.dicts("xtsell", T, 0, Psell_max)
-    xcharge = LpVariable.dicts("xtcharge", T, 0, Pcharge_max)
-    xdischarge = LpVariable.dicts("xtdischarge", T, 0, Pdischarge_max)
-    s = LpVariable.dicts("st", T, 0, Ecap)
-    ycharge = LpVariable.dicts("ytcharge", T, cat=LpBinary)
-    ydischarge = LpVariable.dicts("ytdischarge", T, cat=LpBinary)
+    x_buy = LpVariable.dicts("xtbuy", T, 0, P_buy_max)
+    x_sell = LpVariable.dicts("xtsell", T, 0, P_sell_max)
+    x_charge = LpVariable.dicts("xtcharge", T, 0, P_charge_max)
+    x_discharge = LpVariable.dicts("xtdischarge", T, 0, P_discharge_max)
+    s = LpVariable.dicts("st", T, 0, E_cap)
+    y_charge = LpVariable.dicts("ytcharge", T, cat=LpBinary)
+    y_discharge = LpVariable.dicts("ytdischarge", T, cat=LpBinary)
 
     # --- Objective: maximize revenue from export minus grid purchase cost ---
-    model += sum(C_sell[t] * xsell[t] - C_buy[t] * xbuy[t] for t in T)
+    model += sum(C_sell[t] * x_sell[t] - C_buy[t] * x_buy[t] for t in T)
 
     # --- Constraints ---
     for t in T:
-        model += Esolar[t] + xbuy[t] + xdischarge[t] == Edemand[t] + xcharge[t] + xsell[t]
+        model += E_solar[t] + x_buy[t] + x_discharge[t] == E_demand[t] + x_charge[t] + x_sell[t]
 
         if t == 0:
-            model += s[t] == s0 + charge_eff * xcharge[t] - xdischarge[t] / discharge_eff
+            model += s[t] == s0 + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
         else:
-            model += s[t] == s[t-1] + charge_eff * xcharge[t] - xdischarge[t] / discharge_eff
+            model += s[t] == s[t-1] + charge_eff * x_charge[t] - x_discharge[t] / discharge_eff
 
-        model += xcharge[t] <= Pcharge_max * ycharge[t]
-        model += xdischarge[t] <= Pdischarge_max * ydischarge[t]
-        model += ycharge[t] + ydischarge[t] <= 1
+        model += x_charge[t] <= P_charge_max * y_charge[t]
+        model += x_discharge[t] <= P_discharge_max * y_discharge[t]
+        model += y_charge[t] + y_discharge[t] <= 1
 
-        model += xbuy[t] <= Pbuy_max
-        model += xsell[t] <= Psell_max
+        model += x_buy[t] <= P_buy_max
+        model += x_sell[t] <= P_sell_max
 
 
     model.solve(PULP_CBC_CMD(msg=False))
@@ -51,15 +50,15 @@ def solve_scenario(C_sell, scenario_name, results_folder, save_results=True):
     for t in T:
         data.append({
             "Hour": t,
-            "Solar": Esolar[t],
-            "Demand": Edemand[t],
-            "Buy": value(xbuy[t]),
-            "Sell": value(xsell[t]),
-            "Charge": value(xcharge[t]),
-            "Discharge": value(xdischarge[t]),
+            "Solar": E_solar[t],
+            "Demand": E_demand[t],
+            "Buy": value(x_buy[t]),
+            "Sell": value(x_sell[t]),
+            "Charge": value(x_charge[t]),
+            "Discharge": value(x_discharge[t]),
             "SOC": value(s[t]),
-            "y_c": int(value(ycharge[t])),
-            "y_d": int(value(ydischarge[t])),
+            "y_c": int(value(y_charge[t])),
+            "y_d": int(value(y_discharge[t])),
         })
     df = pd.DataFrame(data)
 

@@ -1,7 +1,7 @@
 import os
 import linear
 import non_linear
-from constants import T, Esolar, Edemand
+from constants import T, E_solar, E_demand
 from profiles import variable_tariff_profile
 import charts
 
@@ -13,7 +13,7 @@ os.makedirs(results_folder, exist_ok=True)
 os.makedirs(linear_folder, exist_ok=True)
 os.makedirs(non_linear_folder, exist_ok=True)
 
-charts.solar_vs_demand_chart(T, Esolar, Edemand, results_folder)
+charts.solar_vs_demand_chart(T, E_solar, E_demand, results_folder)
 
 scenario1_prices = variable_tariff_profile(22, 22)
 scenario2_prices = variable_tariff_profile(35, 48)
